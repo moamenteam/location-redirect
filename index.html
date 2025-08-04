@@ -6,16 +6,14 @@
   <title>Redirecting...</title>
 </head>
 <body>
-  <h1 style="text-align:center">جارٍ تحديد أقرب فرع لك...</h1>
-
+  <h1>جارٍ تحديد أقرب فرع لك...</h1>
   <script>
-    // Branch locations and URLs
     const branches = [
-      { name: "Makrmyah", lat: 16.598503, lon: 42.964406, url: "https://maps.app.goo.gl/5fynvoyMhjbRcMg19" },
-      { name: "Dehmah", lat: 16.653945, lon: 43.136119, url: "https://maps.app.goo.gl/8hp3eC6Ls4K44ZVx9" },
-      { name: "Sawarmah", lat: 16.596058, lon: 42.957103, url: "https://maps.app.goo.gl/wzD448BCkEFLLYFw5" },
-      { name: "Kharsh", lat: 16.614381, lon: 43.002194, url: "https://maps.app.goo.gl/MqZUKq72ss8qowEi6" },
-      { name: "Mojour", lat: 16.576167, lon: 43.038331, url: "https://maps.app.goo.gl/iutEW2hDYLCuACX17" }
+      { name: "Kharsh", url: "https://maps.app.goo.gl/MqZUKq72ss8qowEi6", lat: 16.6484671819877, lon: 42.94472788222953 },
+      { name: "Sawarmah", url: "https://maps.app.goo.gl/wzD448BCkEFLLYFw5", lat: 16.659665916982508, lon: 42.76217279744187 },
+      { name: "Mojour", url: "https://maps.app.goo.gl/iutEW2hDYLCuACX17", lat: 16.618342253072047, lon: 42.98870923499055 },
+      { name: "Makramyah", url: "https://maps.app.goo.gl/5fynvoyMhjbRcMg19", lat: 16.58910210053327, lon: 42.93193864809337 },
+      { name: "Dehmah", url: "https://maps.app.goo.gl/8hp3eC6Ls4K44ZVx9", lat: 16.532063471289852, lon: 42.79565239205183 }
     ];
 
     function getDistance(lat1, lon1, lat2, lon2) {
@@ -23,10 +21,9 @@
       const R = 6371; // km
       const dLat = toRad(lat2 - lat1);
       const dLon = toRad(lon2 - lon1);
-      const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) ** 2;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return R * c;
     }
@@ -39,27 +36,21 @@
       let minDistance = getDistance(userLat, userLon, nearest.lat, nearest.lon);
 
       for (let i = 1; i < branches.length; i++) {
-        const dist = getDistance(userLat, userLon, branches[i].lat, branches[i].lon);
-        if (dist < minDistance) {
+        const d = getDistance(userLat, userLon, branches[i].lat, branches[i].lon);
+        if (d < minDistance) {
           nearest = branches[i];
-          minDistance = dist;
+          minDistance = d;
         }
       }
 
-      // Redirect
       window.location.href = nearest.url;
     }
 
-    function handleError() {
-      document.body.innerHTML = "<h2 style='text-align:center'>لم نتمكن من تحديد موقعك، يرجى السماح بمشاركة الموقع أو اختيار الفرع يدوياً.</h2>";
+    function handleError(error) {
+      document.body.innerHTML = "<h2>تعذر تحديد موقعك. الرجاء تفعيل خدمة الموقع والمحاولة مجددًا.</h2>";
     }
 
-    // Ask for location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(redirectToNearestBranch, handleError);
-    } else {
-      handleError();
-    }
+    navigator.geolocation.getCurrentPosition(redirectToNearestBranch, handleError);
   </script>
 </body>
 </html>
