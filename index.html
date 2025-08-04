@@ -1,56 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Redirecting...</title>
+  <meta charset="UTF-8">
+  <title>Redirecting to Nearest Pharmacy...</title>
 </head>
 <body>
-  <h1>جارٍ تحديد أقرب فرع لك...</h1>
+  <h1>Redirecting you to the nearest branch...</h1>
+
   <script>
     const branches = [
-      { name: "Kharsh", url: "https://maps.app.goo.gl/MqZUKq72ss8qowEi6", lat: 16.6484671819877, lon: 42.94472788222953 },
-      { name: "Sawarmah", url: "https://maps.app.goo.gl/wzD448BCkEFLLYFw5", lat: 16.659665916982508, lon: 42.76217279744187 },
-      { name: "Mojour", url: "https://maps.app.goo.gl/iutEW2hDYLCuACX17", lat: 16.618342253072047, lon: 42.98870923499055 },
-      { name: "Makramyah", url: "https://maps.app.goo.gl/5fynvoyMhjbRcMg19", lat: 16.58910210053327, lon: 42.93193864809337 },
-      { name: "Dehmah", url: "https://maps.app.goo.gl/8hp3eC6Ls4K44ZVx9", lat: 16.532063471289852, lon: 42.79565239205183 }
+      { name: "Kharsh", lat: 16.6484671819877, lon: 42.94472788222953 },
+      { name: "Sawarmah", lat: 16.659665916982508, lon: 42.76217279744187 },
+      { name: "Mojour", lat: 16.618342253072047, lon: 42.98870923499055 },
+      { name: "Makramyah", lat: 16.58910210053327, lon: 42.93193864809337 },
+      { name: "Dehmah", lat: 16.532063471289852, lon: 42.79565239205183 }
     ];
 
     function getDistance(lat1, lon1, lat2, lon2) {
-      const toRad = deg => deg * Math.PI / 180;
-      const R = 6371; // km
-      const dLat = toRad(lat2 - lat1);
-      const dLon = toRad(lon2 - lon1);
-      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const R = 6371; // Earth radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return R * c;
     }
 
-    function redirectToNearestBranch(position) {
-      const userLat = position.coords.latitude;
-      const userLon = position.coords.longitude;
-
-      let nearest = branches[0];
-      let minDistance = getDistance(userLat, userLon, nearest.lat, nearest.lon);
+    function redirectToNearestBranch(userLat, userLon) {
+      let closestBranch = branches[0];
+      let minDistance = getDistance(userLat, userLon, branches[0].lat, branches[0].lon);
 
       for (let i = 1; i < branches.length; i++) {
-        const d = getDistance(userLat, userLon, branches[i].lat, branches[i].lon);
-        if (d < minDistance) {
-          nearest = branches[i];
-          minDistance = d;
+        const branch = branches[i];
+        const distance = getDistance(userLat, userLon, branch.lat, branch.lon);
+        if (distance < minDistance) {
+          closestBranch = branch;
+          minDistance = distance;
         }
       }
 
-      window.location.href = nearest.url;
+      // Redirect to Google Maps
+      const mapsUrl = `https://maps.google.com/?q=${closestBranch.lat},${closestBranch.lon}`;
+      window.location.href = mapsUrl;
     }
 
-    function handleError(error) {
-      document.body.innerHTML = "<h2>تعذر تحديد موقعك. الرجاء تفعيل خدمة الموقع والمحاولة مجددًا.</h2>";
+    function handleLocationError(error) {
+      alert("Unable to detect your location. Please allow location access and refresh.");
+      console.error("Geolocation error:", error.message);
     }
 
-    navigator.geolocation.getCurrentPosition(redirectToNearestBranch, handleError);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLat = position.coords.latitude;
+          const userLon = position.coords.longitude;
+          redirectToNearestBranch(userLat, userLon);
+        },
+        handleLocationError
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
   </script>
 </body>
 </html>
