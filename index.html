@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting...</title>
+  <script>
+    const locations = [
+      { name: "Makrmyah", lat: 16.9466, lon: 42.5460, url: "https://maps.app.goo.gl/5fynvoyMhjbRcMg19" },
+      { name: "Dehmah", lat: 16.9437, lon: 42.5565, url: "https://maps.app.goo.gl/8hp3eC6Ls4K44ZVx9" },
+      { name: "Sawarmah", lat: 16.9677, lon: 42.5321, url: "https://maps.app.goo.gl/wzD448BCkEFLLYFw5" },
+      { name: "Kharsh", lat: 17.0173, lon: 42.6261, url: "https://maps.app.goo.gl/MqZUKq72ss8qowEi6" },
+      { name: "Mojour", lat: 16.9559, lon: 42.4638, url: "https://maps.app.goo.gl/iutEW2hDYLCuACX17" }
+    ];
+
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const toRad = deg => deg * Math.PI / 180;
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    }
+
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude, longitude } = pos.coords;
+      let nearest = locations[0];
+      let minDist = getDistance(latitude, longitude, nearest.lat, nearest.lon);
+      for (const loc of locations) {
+        const dist = getDistance(latitude, longitude, loc.lat, loc.lon);
+        if (dist < minDist) {
+          minDist = dist;
+          nearest = loc;
+        }
+      }
+      window.location.href = nearest.url;
+    }, () => {
+      document.body.innerHTML = "<h2>Location access denied. Please enable GPS.</h2>";
+    });
+  </script>
+</head>
+<body>
+  <p>Redirecting to the nearest branch...</p>
+</body>
+</html>
